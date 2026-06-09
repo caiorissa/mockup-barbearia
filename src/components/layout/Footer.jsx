@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Scissors, MapPin, Phone, AtSign, Clock } from 'lucide-react'
+import { Scissors, MapPin, Phone, AtSign, Clock, Instagram, Linkedin } from 'lucide-react'
 import Button from '../ui/Button'
 import Container from '../ui/Container'
 
@@ -77,9 +77,34 @@ export default function Footer() {
         </div>
 
         <div className="divider-gold mb-6" />
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-barber-muted text-center sm:text-left">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-barber-muted text-center sm:text-left">
           <p>© 2026 Gentleman's Cut — Mockup para portfólio</p>
-          <p>Feito com React + Tailwind</p>
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+            <p>
+              Desenvolvido por{' '}
+              <span className="text-barber-cream">Caio Rissa Silveira</span>
+            </p>
+            <div className="flex items-center gap-3">
+              <a
+                href="https://instagram.com/caaiio.dev"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 hover:text-barber-cream transition-colors"
+              >
+                <Instagram className="w-3.5 h-3.5 text-barber-gold" />
+                @caaiio.dev
+              </a>
+              <a
+                href="https://www.linkedin.com/in/caio-rissa-silveira-b4706527a/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 hover:text-barber-cream transition-colors"
+              >
+                <Linkedin className="w-3.5 h-3.5 text-barber-gold" />
+                LinkedIn
+              </a>
+            </div>
+          </div>
         </div>
       </Container>
     </footer>
