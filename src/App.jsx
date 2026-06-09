@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
+import ScrollProgress from './components/ui/ScrollProgress'
 import Home from './pages/Home'
 import Booking from './pages/Booking'
 import AdminLayout from './pages/admin/AdminLayout'
@@ -21,6 +22,7 @@ function PublicLayout({ children }) {
 
   return (
     <div className="w-full overflow-x-clip">
+      <ScrollProgress />
       <Navbar />
       <main className="w-full overflow-x-clip">{children}</main>
       {!isBooking && <Footer />}

@@ -33,8 +33,8 @@ export default function Navbar() {
     >
       <Container className="py-3 lg:py-4">
         <div className="flex items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-2.5 shrink-0">
-            <div className="p-1.5 rounded-lg border border-barber-gold/20 bg-barber-gold/5">
+          <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
+            <div className="p-1.5 rounded-lg border border-barber-gold/20 bg-barber-gold/5 transition-colors duration-200 group-hover:border-barber-gold/40 group-hover:bg-barber-gold/10">
               <Scissors className="w-4 h-4 text-barber-gold" />
             </div>
             <div>
@@ -50,7 +50,7 @@ export default function Navbar() {
               <a
                 key={link.to}
                 href={link.to}
-                className="px-3 py-2 text-sm text-barber-muted hover:text-barber-cream transition-colors"
+                className="nav-link px-3 py-2 text-sm text-barber-muted hover:text-barber-cream transition-colors focus-visible:outline-none focus-visible:text-barber-cream"
               >
                 {link.label}
               </a>
