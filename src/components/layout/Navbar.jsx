@@ -98,6 +98,9 @@ export default function Navbar() {
               <Link to="/agendar" onClick={() => setOpen(false)} className="mt-2">
                 <Button className="w-full">Agendar Horário</Button>
               </Link>
+              <Link to="/admin" onClick={() => setOpen(false)} className="mt-1">
+                <Button variant="ghost" className="w-full">Painel Admin</Button>
+              </Link>
             </Container>
           </motion.div>
         )}

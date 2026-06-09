@@ -1,4 +1,4 @@
-import { services } from '../../data/mockData'
+import { useBarberStore } from '../../context/BarberStoreContext'
 import SectionHeader from '../ui/SectionHeader'
 import Container from '../ui/Container'
 import Card from '../ui/Card'
@@ -11,6 +11,7 @@ import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 
 export default function Services() {
+  const { services } = useBarberStore()
   const reduceMotion = useReducedMotion()
 
   return (

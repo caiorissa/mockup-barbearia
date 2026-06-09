@@ -1,18 +1,35 @@
-import { schedules, professionals } from '../../data/mockData'
+import { useState } from 'react'
+import { useBarberStore } from '../../context/BarberStoreContext'
 import Card from '../../components/ui/Card'
 import Badge from '../../components/ui/Badge'
+import Modal, { FormField, inputClass, ModalActions } from '../../components/ui/Modal'
 import { motion } from 'framer-motion'
-import { Clock } from 'lucide-react'
+import { Clock, Edit } from 'lucide-react'
 
 const dayOrder = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
 
 export default function Schedules() {
-  const grouped = professionals.map(pro => ({
+  const { professionals, schedules, updateSchedule } = useBarberStore()
+  const [editing, setEditing] = useState(null)
+  const [form, setForm] = useState({ start: '', end: '', breaks: '' })
+
+  const grouped = professionals.map((pro) => ({
     pro,
-    slots: schedules.filter(s => s.professionalId === pro.id).sort(
+    slots: schedules.filter((s) => s.professionalId === pro.id).sort(
       (a, b) => dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day)
     ),
   }))
+
+  const openEdit = (slot) => {
+    setEditing(slot)
+    setForm({ start: slot.start, end: slot.end, breaks: slot.breaks })
+  }
+
+  const handleSave = () => {
+    if (!editing) return
+    updateSchedule({ id: editing.id, ...form })
+    setEditing(null)
+  }
 
   return (
     <div>
@@ -30,7 +47,7 @@ export default function Schedules() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: gi * 0.1 }}
           >
-            <Card hover={false} className="!p-0 overflow-hidden">
+            <Card className="!p-0 overflow-hidden">
               <div className="px-6 py-4 border-b border-white/[0.06] flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-barber-gold/15 flex items-center justify-center font-bold text-barber-gold text-sm font-display">
@@ -46,23 +63,53 @@ export default function Schedules() {
                 </Badge>
               </div>
               <div className="divide-y divide-white/[0.04]">
-                {slots.map((s) => (
-                  <div key={s.id} className="flex items-center justify-between px-6 py-3.5 hover:bg-white/[0.02] transition-colors">
-                    <div className="flex items-center gap-3">
-                      <Clock className="w-4 h-4 text-barber-gold/60" />
-                      <span className="font-medium text-sm w-20">{s.day}</span>
+                {slots.length === 0 ? (
+                  <p className="px-6 py-4 text-sm text-barber-muted">Sem horários cadastrados.</p>
+                ) : (
+                  slots.map((s) => (
+                    <div key={s.id} className="flex items-center justify-between px-6 py-3.5 hover:bg-white/[0.02] transition-colors gap-4">
+                      <div className="flex items-center gap-3">
+                        <Clock className="w-4 h-4 text-barber-gold/60" />
+                        <span className="font-medium text-sm w-20">{s.day}</span>
+                      </div>
+                      <div className="text-right flex items-center gap-3">
+                        <div>
+                          <p className="text-barber-gold text-sm font-medium">{s.start} — {s.end}</p>
+                          <p className="text-barber-muted text-xs">Intervalo: {s.breaks}</p>
+                        </div>
+                        <button
+                          onClick={() => openEdit(s)}
+                          className="p-2 rounded-lg text-barber-muted hover:text-barber-gold hover:bg-barber-gold/10 transition-colors cursor-pointer"
+                          aria-label={`Editar horário ${s.day}`}
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-barber-gold text-sm font-medium">{s.start} — {s.end}</p>
-                      <p className="text-barber-muted text-xs">Intervalo: {s.breaks}</p>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </Card>
           </motion.div>
         ))}
       </div>
+
+      <Modal
+        open={!!editing}
+        onClose={() => setEditing(null)}
+        title={editing ? `Editar — ${editing.day}` : 'Editar horário'}
+        footer={<ModalActions onCancel={() => setEditing(null)} onConfirm={handleSave} />}
+      >
+        <FormField label="Início">
+          <input className={inputClass} value={form.start} onChange={(e) => setForm({ ...form, start: e.target.value })} placeholder="09:00" />
+        </FormField>
+        <FormField label="Fim">
+          <input className={inputClass} value={form.end} onChange={(e) => setForm({ ...form, end: e.target.value })} placeholder="18:00" />
+        </FormField>
+        <FormField label="Intervalo">
+          <input className={inputClass} value={form.breaks} onChange={(e) => setForm({ ...form, breaks: e.target.value })} placeholder="12:00 – 13:00" />
+        </FormField>
+      </Modal>
     </div>
   )
 }

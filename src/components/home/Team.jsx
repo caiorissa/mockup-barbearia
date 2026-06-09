@@ -1,4 +1,4 @@
-import { professionals } from '../../data/mockData'
+import { useBarberStore } from '../../context/BarberStoreContext'
 import SectionHeader from '../ui/SectionHeader'
 import Container from '../ui/Container'
 import Badge from '../ui/Badge'
@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 
 export default function Team() {
+  const { professionals } = useBarberStore()
   const reduceMotion = useReducedMotion()
 
   return (

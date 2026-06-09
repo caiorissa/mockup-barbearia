@@ -1,11 +1,59 @@
-import { professionals } from '../../data/mockData'
+import { useState } from 'react'
+import { useBarberStore } from '../../context/BarberStoreContext'
 import Card from '../../components/ui/Card'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
+import Modal, { FormField, inputClass, ModalActions } from '../../components/ui/Modal'
 import { motion } from 'framer-motion'
 import { Star, Edit, Users } from 'lucide-react'
 
+const emptyForm = { name: '', role: '', experience: '', specialties: '', available: true }
+
 export default function ProfessionalsAdmin() {
+  const { professionals, addProfessional, updateProfessional } = useBarberStore()
+  const [modalOpen, setModalOpen] = useState(false)
+  const [editing, setEditing] = useState(null)
+  const [form, setForm] = useState(emptyForm)
+
+  const openAdd = () => {
+    setEditing(null)
+    setForm(emptyForm)
+    setModalOpen(true)
+  }
+
+  const openEdit = (pro) => {
+    setEditing(pro)
+    setForm({
+      name: pro.name,
+      role: pro.role,
+      experience: pro.experience,
+      specialties: pro.specialties.join(', '),
+      available: pro.available,
+    })
+    setModalOpen(true)
+  }
+
+  const handleSave = () => {
+    if (!form.name.trim() || !form.role.trim()) return
+    const data = {
+      name: form.name.trim(),
+      role: form.role.trim(),
+      experience: form.experience.trim() || '1 ano',
+      specialties: form.specialties.split(',').map((s) => s.trim()).filter(Boolean),
+      available: form.available,
+    }
+    if (editing) {
+      updateProfessional({ id: editing.id, ...data })
+    } else {
+      addProfessional(data)
+    }
+    setModalOpen(false)
+  }
+
+  const toggleAvailable = (pro) => {
+    updateProfessional({ id: pro.id, available: !pro.available })
+  }
+
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
@@ -16,7 +64,7 @@ export default function ProfessionalsAdmin() {
             <Users className="w-4 h-4" /> {professionals.length} barbeiros cadastrados
           </p>
         </div>
-        <Button size="sm">+ Adicionar</Button>
+        <Button size="sm" onClick={openAdd}>+ Adicionar</Button>
       </div>
 
       <div className="grid md:grid-cols-2 gap-5">
@@ -38,23 +86,53 @@ export default function ProfessionalsAdmin() {
                     </div>
                   </div>
                 </div>
-                <button className="p-2 rounded-lg text-barber-muted hover:text-barber-gold hover:bg-barber-gold/10 transition-all cursor-pointer">
+                <button
+                  onClick={() => openEdit(pro)}
+                  className="p-2 rounded-lg text-barber-muted hover:text-barber-gold hover:bg-barber-gold/10 transition-all cursor-pointer"
+                  aria-label={`Editar ${pro.name}`}
+                >
                   <Edit className="w-4 h-4" />
                 </button>
               </div>
               <div className="flex flex-wrap gap-1.5 mb-4">
-                {pro.specialties.map(s => <Badge key={s}>{s}</Badge>)}
+                {pro.specialties.map((s) => <Badge key={s}>{s}</Badge>)}
               </div>
               <div className="flex items-center justify-between pt-4 border-t border-white/[0.06]">
-                <Badge variant={pro.available ? 'success' : 'muted'} dot>
-                  {pro.available ? 'Disponível' : 'Indisponível'}
-                </Badge>
+                <button onClick={() => toggleAvailable(pro)} className="cursor-pointer">
+                  <Badge variant={pro.available ? 'success' : 'muted'} dot>
+                    {pro.available ? 'Disponível' : 'Indisponível'}
+                  </Badge>
+                </button>
                 <span className="text-barber-muted text-xs">{pro.appointments}+ atendimentos</span>
               </div>
             </Card>
           </motion.div>
         ))}
       </div>
+
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={editing ? 'Editar Profissional' : 'Novo Profissional'}
+        footer={<ModalActions onCancel={() => setModalOpen(false)} onConfirm={handleSave} confirmLabel={editing ? 'Salvar' : 'Adicionar'} />}
+      >
+        <FormField label="Nome">
+          <input className={inputClass} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+        </FormField>
+        <FormField label="Cargo">
+          <input className={inputClass} value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} placeholder="Ex: Barbeiro Sênior" />
+        </FormField>
+        <FormField label="Experiência">
+          <input className={inputClass} value={form.experience} onChange={(e) => setForm({ ...form, experience: e.target.value })} placeholder="Ex: 5 anos" />
+        </FormField>
+        <FormField label="Especialidades (separadas por vírgula)">
+          <input className={inputClass} value={form.specialties} onChange={(e) => setForm({ ...form, specialties: e.target.value })} placeholder="Degradê, Barba" />
+        </FormField>
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input type="checkbox" checked={form.available} onChange={(e) => setForm({ ...form, available: e.target.checked })} className="accent-barber-gold" />
+          Disponível para agendamento
+        </label>
+      </Modal>
     </div>
   )
 }

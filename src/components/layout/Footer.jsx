@@ -25,10 +25,10 @@ export default function Footer() {
             <h4 className="text-xs font-semibold tracking-widest uppercase text-barber-gold mb-4">Navegação</h4>
             <ul className="space-y-2 text-sm text-barber-muted">
               {[
-                { label: 'Serviços', href: '#servicos' },
-                { label: 'Experiência', href: '#experiencia' },
-                { label: 'Equipe', href: '#equipe' },
-                { label: 'Depoimentos', href: '#depoimentos' },
+                { label: 'Serviços', href: '/#servicos' },
+                { label: 'Experiência', href: '/#experiencia' },
+                { label: 'Equipe', href: '/#equipe' },
+                { label: 'Depoimentos', href: '/#depoimentos' },
               ].map((item) => (
                 <li key={item.href}>
                   <a href={item.href} className="hover:text-barber-cream transition-colors">{item.label}</a>
@@ -42,18 +42,31 @@ export default function Footer() {
           <div className="min-w-0">
             <h4 className="text-xs font-semibold tracking-widest uppercase text-barber-gold mb-4">Contato</h4>
             <div className="space-y-3 text-sm text-barber-muted">
-              <p className="flex items-start gap-2">
+              <a
+                href="https://maps.google.com/?q=Rua+das+Flores+123+Jardins+SP"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-2 hover:text-barber-cream transition-colors"
+              >
                 <MapPin className="w-4 h-4 text-barber-gold shrink-0 mt-0.5" />
                 Rua das Flores, 123 — Jardins, SP
-              </p>
-              <p className="flex items-center gap-2">
+              </a>
+              <a
+                href="tel:+5511999990000"
+                className="flex items-center gap-2 hover:text-barber-cream transition-colors"
+              >
                 <Phone className="w-4 h-4 text-barber-gold shrink-0" />
                 (11) 99999-0000
-              </p>
-              <p className="flex items-center gap-2">
+              </a>
+              <a
+                href="https://instagram.com/gentlemanscut"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 hover:text-barber-cream transition-colors"
+              >
                 <AtSign className="w-4 h-4 text-barber-gold shrink-0" />
                 @gentlemanscut
-              </p>
+              </a>
             </div>
           </div>
 

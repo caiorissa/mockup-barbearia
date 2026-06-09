@@ -1,11 +1,13 @@
-import { appointments } from '../../data/mockData'
+import { useBarberStore } from '../../context/BarberStoreContext'
 import Card from '../../components/ui/Card'
 import Badge from '../../components/ui/Badge'
+import Button from '../../components/ui/Button'
 import { motion } from 'framer-motion'
-import { UserX, AlertTriangle } from 'lucide-react'
+import { UserX, AlertTriangle, RotateCcw } from 'lucide-react'
 
 export default function NoShows() {
-  const noShows = appointments.filter(a => a.status === 'no-show')
+  const { appointments, updateAppointmentStatus } = useBarberStore()
+  const noShows = appointments.filter((a) => a.status === 'no-show')
 
   return (
     <div>
@@ -30,28 +32,42 @@ export default function NoShows() {
       )}
 
       <div className="grid gap-3">
-        {noShows.map((apt, i) => (
-          <motion.div key={apt.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
-            <Card hover={false} className="!p-5">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-amber-500/10">
-                    <UserX className="w-5 h-5 text-amber-400" />
+        {noShows.length === 0 ? (
+          <Card className="!p-8 text-center text-barber-muted text-sm">Nenhum no-show registrado.</Card>
+        ) : (
+          noShows.map((apt, i) => (
+            <motion.div key={apt.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
+              <Card className="!p-5">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-xl bg-amber-500/10">
+                      <UserX className="w-5 h-5 text-amber-400" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">{apt.client}</p>
+                      <p className="text-barber-muted text-sm">{apt.service} · {apt.professional}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold">{apt.client}</p>
-                    <p className="text-barber-muted text-sm">{apt.service} · {apt.professional}</p>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="text-right">
+                      <p className="text-sm font-medium">{apt.date}</p>
+                      <p className="text-barber-muted text-sm mb-1">{apt.time}</p>
+                      <Badge variant="warning" dot>No-Show</Badge>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={RotateCcw}
+                      onClick={() => updateAppointmentStatus(apt.id, 'confirmado')}
+                    >
+                      Reagendar
+                    </Button>
                   </div>
                 </div>
-                <div className="text-right shrink-0">
-                  <p className="text-sm font-medium">{apt.date}</p>
-                  <p className="text-barber-muted text-sm mb-1">{apt.time}</p>
-                  <Badge variant="warning" dot>No-Show</Badge>
-                </div>
-              </div>
-            </Card>
-          </motion.div>
-        ))}
+              </Card>
+            </motion.div>
+          ))
+        )}
       </div>
     </div>
   )

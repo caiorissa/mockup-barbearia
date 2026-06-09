@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { services, professionals, timeSlots } from '../data/mockData'
+import { timeSlots } from '../data/mockData'
+import { useBarberStore } from '../context/BarberStoreContext'
 import Button from '../components/ui/Button'
 import Container from '../components/ui/Container'
 import {
@@ -11,27 +12,71 @@ import { Link } from 'react-router-dom'
 const steps = ['Serviço', 'Profissional', 'Horário', 'Confirmar']
 
 export default function Booking() {
+  const { services, professionals, addAppointment, isSlotAvailable } = useBarberStore()
   const [step, setStep] = useState(0)
   const [confirmed, setConfirmed] = useState(false)
-  const [selected, setSelected] = useState({ service: null, professional: null, time: null, date: '' })
+  const [error, setError] = useState('')
+  const [selected, setSelected] = useState({
+    service: null,
+    professional: null,
+    time: null,
+    date: '',
+    client: '',
+    phone: '',
+  })
 
   const canNext = () => {
     if (step === 0) return selected.service
     if (step === 1) return selected.professional
-    if (step === 2) return selected.date && selected.time
+    if (step === 2) return selected.date && selected.time && selected.client.trim() && selected.phone.trim()
     return true
   }
 
   const reset = () => {
     setConfirmed(false)
     setStep(0)
-    setSelected({ service: null, professional: null, time: null, date: '' })
+    setError('')
+    setSelected({ service: null, professional: null, time: null, date: '', client: '', phone: '' })
   }
+
+  const handleConfirm = () => {
+    const available = isSlotAvailable({
+      professionalName: selected.professional.name,
+      date: selected.date,
+      time: selected.time,
+    })
+    if (!available) {
+      setError('Este horário acabou de ser reservado. Escolha outro.')
+      setStep(2)
+      return
+    }
+
+    addAppointment({
+      client: selected.client.trim(),
+      phone: selected.phone.trim(),
+      service: selected.service.name,
+      professional: selected.professional.name,
+      date: selected.date,
+      time: selected.time,
+    })
+    setConfirmed(true)
+    setError('')
+  }
+
+  const isTimeTaken = (time) =>
+    selected.professional &&
+    selected.date &&
+    !isSlotAvailable({
+      professionalName: selected.professional.name,
+      date: selected.date,
+      time,
+    })
+
+  const today = new Date().toISOString().slice(0, 10)
 
   return (
     <div className="w-full py-28 pb-12">
       <Container className="!max-w-lg">
-        {/* Voltar */}
         <Link
           to="/"
           className="inline-flex items-center gap-1.5 text-sm text-barber-muted hover:text-barber-cream mb-6 transition-colors"
@@ -40,9 +85,7 @@ export default function Booking() {
           Voltar ao site
         </Link>
 
-        {/* Painel principal */}
         <div className="bg-barber-card border border-white/[0.08] rounded-2xl overflow-hidden">
-          {/* Header do painel */}
           <div className="px-6 pt-6 pb-4 border-b border-white/[0.06]">
             <p className="text-barber-gold text-xs font-medium tracking-widest uppercase mb-1">
               Reserva online
@@ -51,8 +94,6 @@ export default function Booking() {
             <p className="text-barber-muted text-sm mt-1">
               Passo {step + 1} de {steps.length} — {steps[step]}
             </p>
-
-            {/* Progress dots */}
             <div className="flex gap-2 mt-4">
               {steps.map((_, i) => (
                 <div
@@ -65,8 +106,13 @@ export default function Booking() {
             </div>
           </div>
 
-          {/* Conteúdo */}
           <div className="px-6 py-5">
+            {error && (
+              <p className="mb-4 text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2.5">
+                {error}
+              </p>
+            )}
+
             <AnimatePresence mode="wait">
               {!confirmed ? (
                 <motion.div
@@ -110,7 +156,7 @@ export default function Booking() {
 
                   {step === 1 && (
                     <div className="space-y-2">
-                      {professionals.filter(p => p.available).map((p) => {
+                      {professionals.filter((p) => p.available).map((p) => {
                         const isSelected = selected.professional?.id === p.id
                         return (
                           <button
@@ -143,31 +189,58 @@ export default function Booking() {
                   {step === 2 && (
                     <div className="space-y-5">
                       <div>
+                        <label className="text-xs text-barber-muted font-medium mb-2 block">Seu nome</label>
+                        <input
+                          type="text"
+                          value={selected.client}
+                          onChange={(e) => setSelected({ ...selected, client: e.target.value })}
+                          placeholder="Nome completo"
+                          className="w-full bg-barber-elevated border border-white/10 rounded-xl px-4 py-2.5 text-sm text-barber-cream focus:border-barber-gold/50 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-barber-muted font-medium mb-2 block">Telefone</label>
+                        <input
+                          type="tel"
+                          value={selected.phone}
+                          onChange={(e) => setSelected({ ...selected, phone: e.target.value })}
+                          placeholder="(11) 99999-0000"
+                          className="w-full bg-barber-elevated border border-white/10 rounded-xl px-4 py-2.5 text-sm text-barber-cream focus:border-barber-gold/50 focus:outline-none"
+                        />
+                      </div>
+                      <div>
                         <label className="text-xs text-barber-muted font-medium mb-2 block">Data</label>
                         <input
                           type="date"
+                          min={today}
                           value={selected.date}
-                          onChange={(e) => setSelected({ ...selected, date: e.target.value })}
+                          onChange={(e) => setSelected({ ...selected, date: e.target.value, time: null })}
                           className="w-full bg-barber-elevated border border-white/10 rounded-xl px-4 py-2.5 text-sm text-barber-cream focus:border-barber-gold/50 focus:outline-none"
                         />
                       </div>
                       <div>
                         <label className="text-xs text-barber-muted font-medium mb-2 block">Horário</label>
                         <div className="grid grid-cols-3 gap-2">
-                          {timeSlots.map((t) => (
-                            <button
-                              key={t}
-                              type="button"
-                              onClick={() => setSelected({ ...selected, time: t })}
-                              className={`py-2 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
-                                selected.time === t
-                                  ? 'bg-barber-gold text-barber-dark'
-                                  : 'bg-barber-elevated text-barber-cream border border-white/[0.06] hover:border-barber-gold/30'
-                              }`}
-                            >
-                              {t}
-                            </button>
-                          ))}
+                          {timeSlots.map((t) => {
+                            const taken = isTimeTaken(t)
+                            return (
+                              <button
+                                key={t}
+                                type="button"
+                                disabled={taken}
+                                onClick={() => setSelected({ ...selected, time: t })}
+                                className={`py-2 rounded-lg text-xs font-medium cursor-pointer transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
+                                  selected.time === t
+                                    ? 'bg-barber-gold text-barber-dark'
+                                    : taken
+                                      ? 'bg-barber-elevated text-barber-muted border border-white/[0.04]'
+                                      : 'bg-barber-elevated text-barber-cream border border-white/[0.06] hover:border-barber-gold/30'
+                                }`}
+                              >
+                                {t}
+                              </button>
+                            )
+                          })}
                         </div>
                       </div>
                     </div>
@@ -176,6 +249,8 @@ export default function Booking() {
                   {step === 3 && (
                     <div className="space-y-0">
                       {[
+                        { label: 'Cliente', value: selected.client },
+                        { label: 'Telefone', value: selected.phone },
                         { label: 'Serviço', value: selected.service?.name },
                         { label: 'Profissional', value: selected.professional?.name },
                         { label: 'Data', value: selected.date },
@@ -212,8 +287,11 @@ export default function Booking() {
                   <p className="text-barber-muted text-sm mb-1">
                     {selected.service?.name} · {selected.professional?.name}
                   </p>
-                  <p className="text-barber-gold text-sm mb-6">
+                  <p className="text-barber-gold text-sm mb-2">
                     {selected.date} às {selected.time}
+                  </p>
+                  <p className="text-barber-muted text-xs mb-6">
+                    Seu agendamento já aparece no painel admin em tempo real.
                   </p>
                   <Button onClick={reset} className="w-full">Novo Agendamento</Button>
                 </motion.div>
@@ -221,22 +299,21 @@ export default function Booking() {
             </AnimatePresence>
           </div>
 
-          {/* Ações — coladas no painel */}
           {!confirmed && (
             <div className="px-6 py-4 border-t border-white/[0.06] flex justify-between gap-3">
               {step > 0 ? (
-                <Button variant="ghost" size="sm" onClick={() => setStep(step - 1)}>
+                <Button variant="ghost" size="sm" onClick={() => { setStep(step - 1); setError('') }}>
                   <ChevronLeft className="w-4 h-4" /> Voltar
                 </Button>
               ) : (
                 <div />
               )}
               {step < 3 ? (
-                <Button size="sm" onClick={() => setStep(step + 1)} disabled={!canNext()}>
+                <Button size="sm" onClick={() => { setError(''); setStep(step + 1) }} disabled={!canNext()}>
                   Próximo <ChevronRight className="w-4 h-4" />
                 </Button>
               ) : (
-                <Button size="sm" onClick={() => setConfirmed(true)}>
+                <Button size="sm" onClick={handleConfirm}>
                   Confirmar
                 </Button>
               )}
